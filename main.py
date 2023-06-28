@@ -72,6 +72,7 @@ tickers = pd.read_csv('S&P_500.csv')
 symbol = tickers["Symbol"]
 symbol_list = symbol.tolist()
 symbol = symbol.to_frame(name="tickers")
+<<<<<<< HEAD
 # Current time as a dummy input
 dummy = 0  
 df, df_dow= download_stock_data(symbol_list, "2013-01-01", symbol, dummy)
@@ -82,6 +83,16 @@ if st.sidebar.button(f"{languages['refresh'][selected_language]}"):
     dummy = time.time() # Current time as a dummy input
     df, df_dow= download_stock_data(symbol_list, "2013-01-01", symbol, dummy)
 st.title(f"{languages['title'][selected_language]}")
+=======
+df = download_stock_data(symbol_list, "2018-01-01")
+df = df.T
+df = pd.merge(symbol.set_index('tickers'), df, left_index=True, right_index=True)
+df = df.T
+df = df.dropna(axis=1, how='all')
+
+
+df_dow = yf.download("^GSPC", start="2018-01-01")
+>>>>>>> 613354ff95f9bf4b6e1dbcf57e35b0611a451eda
 
 # Calculating the price difference
 df_diff = df.pct_change() * 100
@@ -166,7 +177,7 @@ st.markdown("""<hr style="border-top: 2px solid black; border-bottom: 2px solid 
 st.subheader(languages['chart'][selected_language])
 Col1, Col2 = st.columns(2)
 with Col1:
-    trade_day = st.number_input(f"{languages['Trading days covered'][selected_language]}", min_value=1.0, max_value=2800.0, value=60.0, step=1.0)
+    trade_day = st.number_input(f"{languages['Trading days covered'][selected_language]}", min_value=1.0, max_value=1200.0, value=60.0, step=1.0)
     # Get last 30 days data
     df_last_days = df_counts.tail(int(trade_day))
     df_last_days_33 = df_counts_33.tail(int(trade_day))
