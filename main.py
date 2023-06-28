@@ -6,6 +6,8 @@ import mplfinance as mpf
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
+import time
+
 
 
 
@@ -13,9 +15,15 @@ import matplotlib.pyplot as plt
 #df = pd.read_csv("C:/Users/aaron/OneDrive/文档/web_app/advance_decline/sp500_adj_close.csv")
 
 @st.cache_data
-def download_stock_data(tickers, start_date):
+def download_stock_data(tickers, start_date, symbol, dummy):
     df = yf.download(tickers, start=start_date)["Adj Close"]
-    return df
+    df = df.T
+    df = pd.merge(symbol.set_index('tickers'), df, left_index=True, right_index=True)
+    df = df.T
+    df = df.dropna(axis=1, how='all')
+    df_dow = yf.download("^GSPC", start="2013-01-01")
+
+    return df, df_dow
 
 
 def assign_stock_return_labels(neutral_threshold_percent, df_diff):
@@ -57,29 +65,27 @@ def calculate_metrics(df):
     return df
 
 
+
+
 # Data cleaning 
 tickers = pd.read_csv('S&P_500.csv')
 symbol = tickers["Symbol"]
 symbol_list = symbol.tolist()
 symbol = symbol.to_frame(name="tickers")
-df = download_stock_data(symbol_list, "2013-01-01")
-df = df.T
-df = pd.merge(symbol.set_index('tickers'), df, left_index=True, right_index=True)
-df = df.T
-df = df.dropna(axis=1, how='all')
+# Current time as a dummy input
+dummy = 0  
+df, df_dow= download_stock_data(symbol_list, "2013-01-01", symbol, dummy)
 
-
-df_dow = yf.download("^GSPC", start="2013-01-01")
+selected_language = st.sidebar.selectbox("Choose a language", options=['English', '簡體', '繁體'])
+threshold_percent = st.sidebar.number_input(f"{languages['Neutral_Threshold(%)'][selected_language]}", min_value=0.0, max_value=10.0, value=0.0, step=0.1)
+if st.sidebar.button(f"{languages['refresh'][selected_language]}"):
+    dummy = time.time() # Current time as a dummy input
+    df, df_dow= download_stock_data(symbol_list, "2013-01-01", symbol, dummy)
+st.title(f"{languages['title'][selected_language]}")
 
 # Calculating the price difference
 df_diff = df.pct_change() * 100
 df_dow["pct"] = df_dow["Adj Close"].pct_change() * 100
-
-
-selected_language = st.sidebar.selectbox("Choose a language", options=['English', '簡體', '繁體'])
-threshold_percent = st.sidebar.number_input(f"{languages['Neutral_Threshold(%)'][selected_language]}", min_value=0.0, max_value=10.0, value=0.0, step=0.1)
-
-st.title(f"{languages['title'][selected_language]}")
 
 # Separating the dataframe 'df_diff' into smaller dataframes based on the ranking of market cap.
 df_top_33 = df_diff.iloc[:, :13]
@@ -108,11 +114,14 @@ df_counts_66 = calculate_metrics(df_counts_66)
 
 
 st.write(df_counts["AD"].index[-1])
-Col1, Col2  = st.columns(2)
+Col1, Col2, Col3  = st.columns(3)
 with Col1:
-    st.metric(label=languages['AD'][selected_language], value=df_counts["AD"].iloc[-1])
+    st.metric(label=languages['S&P500'][selected_language], value=f"{round(df_dow['pct'].iloc[-1],2)}%")
 
 with Col2:
+    st.metric(label=languages['AD'][selected_language], value=df_counts["AD"].iloc[-1])
+
+with Col3:
     st.metric(label=languages['positive_percentage'][selected_language], value=f'{df_counts["positive_percentage"].iloc[-1]}%')
 
 
