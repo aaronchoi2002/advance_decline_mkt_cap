@@ -186,7 +186,7 @@ with Col2:
 df_last_days_33['diff'] = df_last_days_33['positive_percentage_average'] - df_last_days_66['positive_percentage_average']
 
 # Create line charts
-st.metric(label=languages['last_average'][selected_language], value=f'{df_last_days["positive_percentage_average"].iloc[-1]}')
+st.metric(label=languages['last_average'][selected_language], value=f'{round(df_last_days["positive_percentage_average"].iloc[-1],2)}')
 df_dow = df_dow.tail(int(trade_day))
 
 #Create subplots
