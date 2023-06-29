@@ -113,6 +113,11 @@ languages = {
         "簡體": "刷新",
         "繁體": "更新",
     },
+    "last_average": {
+        "English": "Averaged Up",
+        "簡體": "平均上涨",
+        "繁體": "平均上升",
+    },
 
 
 

@@ -9,11 +9,6 @@ import matplotlib.pyplot as plt
 import time
 
 
-
-
-# Define the ticker symbol
-#df = pd.read_csv("C:/Users/aaron/OneDrive/文档/web_app/advance_decline/sp500_adj_close.csv")
-
 @st.cache_data
 def download_stock_data(tickers, start_date, symbol, dummy):
     df = yf.download(tickers, start=start_date)["Adj Close"]
@@ -168,7 +163,7 @@ st.markdown("""<hr style="border-top: 2px solid black; border-bottom: 2px solid 
 st.subheader(languages['chart'][selected_language])
 Col1, Col2 = st.columns(2)
 with Col1:
-    trade_day = st.number_input(f"{languages['Trading days covered'][selected_language]}", min_value=1.0, max_value=1200.0, value=60.0, step=1.0)
+    trade_day = st.number_input(f"{languages['Trading days covered'][selected_language]}", min_value=1.0, max_value=2000.0, value=60.0, step=1.0)
     # Get last 30 days data
     df_last_days = df_counts.tail(int(trade_day))
     df_last_days_33 = df_counts_33.tail(int(trade_day))
@@ -191,9 +186,7 @@ with Col2:
 df_last_days_33['diff'] = df_last_days_33['positive_percentage_average'] - df_last_days_66['positive_percentage_average']
 
 # Create line charts
-st.write(df_last_days.index[0])
-
-
+st.metric(label=languages['last_average'][selected_language], value=f'{df_last_days["positive_percentage_average"].iloc[-1]}')
 df_dow = df_dow.tail(int(trade_day))
 
 #Create subplots
@@ -223,3 +216,10 @@ fig.update_layout(hovermode="x unified")  # add line
 
 #Show the plot in Streamlit
 st.plotly_chart(fig)
+
+csv_pct = df_last_days.to_csv().encode('utf-8')
+st.download_button(
+    label="download_csv",
+    data=csv_pct,
+    file_name='daily_volatility.csv',
+    mime='text/csv',)
